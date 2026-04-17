@@ -106,7 +106,7 @@ document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
 
 // 1. Inicialize o Stripe com sua Chave Pública (Encontrada no Dashboard do Stripe)
 // Você deve substituir 'SUA_CHAVE_PUBLICA_AQUI' pela chave PK_... do cliente
-const stripe = typeof Stripe !== 'undefined' ? Stripe('pk_live_51TNHENJ2N3p2jApSAIGZQUn8k50VfgubnKWuf92zebXZ1s5qcD1slSb2r4waZdkP87Ahd4BbST1BU773R29hKQLi00J8qfryqa') : null; 
+// Stripe SDK não é mais necessário com o método de Payment Link direto
 
 // Checkout Modal Logic
 const modal = document.querySelector('#checkout-modal');
@@ -159,44 +159,19 @@ maskInput('#birth-date', masks.date);
 document.querySelector('#enrollment-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.querySelector('#submit-btn');
-    
-    // Check if Stripe is initialized
-    if (!stripe) {
-        alert('Configuração de pagamento incompleta. Insira a Chave da API do Stripe no script.js.');
-        return;
-    }
-
     const email = document.querySelector('#email').value;
-    const name = document.querySelector('#full-name').value;
 
     btn.innerText = 'REDIRECIONANDO...';
     btn.disabled = true;
 
-    try {
-        // Fluxo Real via Stripe Checkout
-        // O ID do preço deve ser criado no painel do Stripe do cliente
-        const { error } = await stripe.redirectToCheckout({
-            lineItems: [{
-                price: 'price_1TNHnMJ2N3p2jApS4RMpGldB', // Substituído pelo ID real
-                quantity: 1,
-            }],
-            mode: 'payment',
-            successUrl: window.location.origin + '/sucesso.html',
-            cancelUrl: window.location.origin + '/cancelado.html',
-            customerEmail: email,
-        });
-
-        if (error) {
-            console.error('Erro Stripe:', error);
-            alert('Erro ao iniciar pagamento: ' + error.message);
-            btn.disabled = false;
-            btn.innerText = 'IR PARA PAGAMENTO';
-        }
-    } catch (err) {
-        console.error('Erro geral:', err);
-        alert('Ocorreu um erro inesperado. Verifique os dados e tente novamente.');
-        btn.disabled = false;
-    }
+    // Usando Payment Link para garantir 100% de estabilidade e contornar erros de integração
+    const paymentLink = 'https://buy.stripe.com/14A9AUbPY95xcMheaI8g000';
+    
+    // Adiciona o e-mail do cliente ao link para facilitar o preenchimento no checkout do Stripe
+    const finalUrl = `${paymentLink}?prefilled_email=${encodeURIComponent(email)}`;
+    
+    // Redireciona o usuário
+    window.location.href = finalUrl;
 });
 
 // Carousel Logic
