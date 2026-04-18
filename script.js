@@ -10,27 +10,24 @@ window.addEventListener('scroll', () => {
 
 // Scroll Reveal Animation (using Intersection Observer)
 const revealElements = document.querySelectorAll(
-    '.module-card, .bonus-card, .expert-text, .expert-image, .stat-item, .pricing-card, .faq-item'
+    '.module-card, .bonus-card, .expert-text, .expert-image, .stat-item, .pricing-card, .faq-item, .quote-card, .reveal'
 );
 
 const revealCallback = (entries, observer) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
+            entry.target.classList.add('active');
             observer.unobserve(entry.target);
         }
     });
 };
 
 const revealObserver = new IntersectionObserver(revealCallback, {
-    threshold: 0.15
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px' // Trigger slightly before it enters fully
 });
 
 revealElements.forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(30px)';
-    el.style.transition = 'all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1)';
     revealObserver.observe(el);
 });
 
@@ -239,3 +236,82 @@ if (track) {
         updateCarousel(currentIndex);
     });
 }
+
+// 3D Tilt Effect for Cards
+const tiltCards = document.querySelectorAll('.quote-card, .module-card, .bonus-card');
+
+tiltCards.forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = (y - centerY) / 10;
+        const rotateY = (centerX - x) / 10;
+        
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px)`;
+    });
+    
+    card.addEventListener('mouseleave', () => {
+        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)`;
+    });
+});
+
+
+// Hero Image Parallax (Mouse Move)
+const heroSection = document.querySelector('#hero');
+const heroImageAsset = document.querySelector('.hero-image-asset-large');
+
+if (heroSection && heroImageAsset) {
+    heroSection.addEventListener('mousemove', (e) => {
+        const x = (window.innerWidth / 2 - e.pageX) / 30;
+        const y = (window.innerHeight / 2 - e.pageY) / 30;
+        heroImageAsset.style.transform = `perspective(1000px) rotateY(${-10 + x}deg) rotateX(${y}deg) translateZ(50px)`;
+    });
+    
+    heroSection.addEventListener('mouseleave', () => {
+        heroImageAsset.style.transform = `perspective(1000px) rotateY(-10deg) rotateX(0deg) translateZ(0)`;
+    });
+}
+
+// Typewriter Effect
+const typewriterElement = document.getElementById('typewriter');
+if (typewriterElement) {
+    const words = ["Propósito", "Direção", "Maturidade", "Futuro"];
+    let wordIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typeSpeed = 150;
+
+    const type = () => {
+        const currentWord = words[wordIndex];
+        if (isDeleting) {
+            typewriterElement.innerText = currentWord.substring(0, charIndex - 1);
+            charIndex--;
+            typeSpeed = 100;
+        } else {
+            typewriterElement.innerText = currentWord.substring(0, charIndex + 1);
+            charIndex++;
+            typeSpeed = 200;
+        }
+
+        if (!isDeleting && charIndex === currentWord.length) {
+            isDeleting = true;
+            typeSpeed = 2000; // Pause at end
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            wordIndex = (wordIndex + 1) % words.length;
+            typeSpeed = 500;
+        }
+
+        setTimeout(type, typeSpeed);
+    };
+
+    setTimeout(type, 1000);
+}
+
+
+
