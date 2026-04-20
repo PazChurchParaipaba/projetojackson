@@ -889,10 +889,16 @@ h1 {
 
 @media (max-width: 768px) {
     .final-call-content {
-        text-align: center;
+        text-align: left;
     }
     .final-call-wrapper {
         gap: 2rem;
+        align-items: flex-start;
+    }
+    .final-call-btn {
+        width: auto !important;
+        text-align: center;
+        display: inline-block;
     }
 }
 
@@ -1638,11 +1644,12 @@ footer {
 @media (max-width: 992px) {
     .final-call-wrapper {
         flex-direction: column;
-        text-align: center;
+        text-align: left;
     }
     .final-call-content {
         padding-right: 0;
         margin-bottom: 4rem;
+        text-align: left;
     }
 }
 
