@@ -892,19 +892,23 @@ h1 {
         text-align: left;
     }
     .final-call-content p {
-        font-size: 1.15rem;
+        font-size: 1.05rem;
+        max-width: 260px; /* Força o texto a quebrar a linha cedo, ficando estreito e bonito */
+        line-height: 1.4;
+        margin-right: auto;
     }
     .final-call-wrapper {
         gap: 2rem;
         align-items: flex-start;
     }
     .final-call-btn {
-        width: 100% !important;
-        padding: 1.2rem 1.5rem !important;
-        font-size: 0.95rem !important;
+        width: auto !important; /* Remove os 100% */
+        padding: 1rem 1.5rem !important; /* Botão mais curto e ajustado */
+        font-size: 0.85rem !important;
         box-sizing: border-box;
         text-align: center;
-        display: block !important;
+        display: inline-block !important; /* Alinha à esquerda acompanhando o texto */
+        margin-left: 0;
     }
 }
 
