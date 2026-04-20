@@ -1550,8 +1550,11 @@ footer {
         padding: 80px 0 !important;
     }
 
-    .section-title h2 {
-        font-size: 2.2rem;
+    .section-title h2, .final-call-content h2 {
+        font-size: 2.2rem !important;
+        line-height: 1.1;
+        word-wrap: break-word;
+        hyphens: auto;
     }
 
     .quote-card {
