@@ -891,14 +891,20 @@ h1 {
     .final-call-content {
         text-align: left;
     }
+    .final-call-content p {
+        font-size: 1.15rem;
+    }
     .final-call-wrapper {
         gap: 2rem;
         align-items: flex-start;
     }
     .final-call-btn {
-        width: auto !important;
+        width: 100% !important;
+        padding: 1.2rem 1.5rem !important;
+        font-size: 0.95rem !important;
+        box-sizing: border-box;
         text-align: center;
-        display: inline-block;
+        display: block !important;
     }
 }
 
