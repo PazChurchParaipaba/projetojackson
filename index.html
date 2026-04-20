@@ -37,7 +37,7 @@
             <div class="container hero-content-wrapper">
                 <div class="hero-text-area">
                     <span class="badge">Inscrições Abertas</span>
-                    <h1 class="premium-white-text" style="font-size: clamp(3rem, 8vw, 6rem);"><span class="gold-text">Não é Só</span><br>Namoro</h1>
+                    <h1 class="premium-white-text"><span class="gold-text">Não é Só</span><br>Namoro</h1>
                     <p class="subtitle">Relacionamentos com <span id="typewriter" class="gold-text"></span></p>
                     <div class="cta-group">
                         <a href="#pricing" class="btn-primary">Quero começar agora</a>
@@ -211,6 +211,20 @@
                 </div>
             </div>
         </section>
+        <!-- Ebook Store -->
+        <section id="loja-ebooks">
+            <div class="container">
+                <div class="section-title reveal">
+                    <span class="gold-text">BIBLIOTECA EXCLUSIVA</span>
+                    <h2>Aprofunde seu Conhecimento</h2>
+                    <p style="color: var(--text-muted); margin-top: 1rem;">Materiais de apoio e e-books exclusivos para acelerar seu desenvolvimento emocional.</p>
+                </div>
+                
+                <div class="ebooks-grid" id="public-ebooks-container">
+                    <!-- E-books dinâmicos renderizados aqui pelo JS -->
+                </div>
+            </div>
+        </section>
 
         <!-- FAQ Section -->
         <section id="faq">
@@ -353,12 +367,44 @@
                     </div>
                 </div>
 
-                <div class="modal-header" style="margin-top: 2rem; margin-bottom: 1rem;">
-                    <span class="gold-text">PAGAMENTO 100% SEGURO</span>
-                    <p style="font-size: 0.7rem; opacity: 0.7; margin-top: 0.5rem;">Cartão de Crédito, Débito ou Pix</p>
+                <div class="modal-header" style="margin-top: 2rem; margin-bottom: 1.5rem;">
+                    <span class="gold-text">MÉTODO DE PAGAMENTO</span>
                 </div>
 
-                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;" id="submit-btn">IR PARA PAGAMENTO</button>
+                <div class="payment-selection">
+                    <div class="payment-option active" data-method="card">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                        <span>Cartão/Boleto</span>
+                    </div>
+                    <div class="payment-option" data-method="pix">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12l10 10 10-10L12 2zm0 17.5L4.5 12 12 4.5 19.5 12 12 19.5z"/></svg>
+                        <span>Pix Direto</span>
+                    </div>
+                </div>
+
+                <!-- Stripe Area -->
+                <div id="stripe-info">
+                    <p style="font-size: 0.8rem; text-align: center; color: var(--text-muted); margin-bottom: 1.5rem;">Você será redirecionado para a plataforma segura do Stripe.</p>
+                </div>
+
+                <!-- Pix Area -->
+                <div id="pix-area" class="hidden">
+                    <div class="pix-info-card">
+                        <div class="pix-header">
+                            <strong>Chave Pix (Celular)</strong>
+                            <div class="pix-key-wrapper">
+                                <span id="pix-key">(85) 99287-2157</span>
+                                <button type="button" class="copy-pix" onclick="copyPix()">COPIAR</button>
+                            </div>
+                        </div>
+                        <div class="pix-value">
+                            VALOR: <strong>R$ 97,50</strong>
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-top: 1rem;">O acesso será liberado manualmente após o envio do comprovante.</p>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;" id="submit-btn">FINALIZAR PEDIDO</button>
                 
                 <div class="payment-methods" style="margin-top: 2rem; opacity: 0.8; justify-content: center; gap: 1rem;">
                     <img src="https://logodownload.org/wp-content/uploads/2014/07/visa-logo-1.png" alt="Visa" height="15">
@@ -386,6 +432,7 @@
 
     <!-- Payment SDK -->
     <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
 </html>
