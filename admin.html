@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Não é Só Namoro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: #050505; color: #fff; padding: 40px 20px; font-family: 'Outfit', sans-serif; }
+        .admin-container { max-width: 800px; margin: 0 auto; background: #111; padding: 30px; border-radius: 10px; border: 1px solid rgba(197, 160, 89, 0.3); }
+        .admin-header { text-align: center; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: var(--gold); font-weight: 600; }
+        input, textarea { width: 100%; padding: 12px; background: #222; border: 1px solid #333; color: #fff; border-radius: 5px; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold-light), var(--gold-dark)); color: #000; font-weight: bold; border: none; padding: 15px; width: 100%; border-radius: 5px; cursor: pointer; text-transform: uppercase; }
+        .ebook-list { margin-top: 40px; }
+        .ebook-item { background: #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-left: 4px solid var(--gold); gap: 10px; }
+        .edit-btn { background: var(--primary); color: #000; font-weight: bold; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .delete-btn { background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .action-btns { display: flex; gap: 10px; }
+        
+        @media (max-width: 600px) {
+            .ebook-item { flex-direction: column; align-items: flex-start; }
+            .action-btns { width: 100%; display: flex; }
+            .action-btns button { flex: 1; }
+            .admin-container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container" id="login-screen">
+        <div class="admin-header">
+            <h2 class="gold-text">Acesso Restrito</h2>
+            <p>Digite a senha do administrador</p>
+        </div>
+        <input type="password" id="admin-pass" placeholder="Senha..." style="margin-bottom: 15px;">
+        <button class="btn-gold" onclick="login()">ENTRAR</button>
+    </div>
+
+    <div class="admin-container" id="dashboard" style="display: none;">
+        <div class="admin-header">
+            <h2 class="gold-text">Gerenciar E-books</h2>
+            <p>Adicione materiais para venda na plataforma</p>
+        </div>
+
+        <form id="ebook-form">
+            <div class="form-group">
+                <label>Título do E-book</label>
+                <input type="text" id="ebook-title" required placeholder="Ex: Guia Completo de Maturidade Emocional">
+            </div>
+            
+            <div class="form-group">
+                <label>Preço (R$)</label>
+                <input type="text" id="ebook-price" required placeholder="Ex: 47,90">
+            </div>
+
+            <div class="form-group">
+                <label>Capa do E-book (Arquivo da Imagem) - Deixe vazio ao editar se não quiser mudar</label>
+                <input type="file" id="ebook-image" accept="image/*" style="background: transparent; border: 1px dashed #c5a059;">
+            </div>
+
+            <div class="form-group">
+                <label>Link de Pagamento Stripe</label>
+                <input type="text" id="ebook-stripe" required placeholder="Ex: https://buy.stripe.com/...">
+            </div>
+
+
+
+            <div class="form-group">
+                <label>Descrição Curta</label>
+                <textarea id="ebook-desc" rows="3" required placeholder="Descreva os benefícios deste E-book..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-gold">Publicar E-book na Loja</button>
+        </form>
+
+        <div class="ebook-list" id="ebooks-container">
+            <h3 style="margin-bottom: 15px;">E-books Ativos na Plataforma</h3>
+            <!-- Ebooks will be rendered here -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase Initialization
+        const supabaseUrl = 'https://csxitgraaawziaflveol.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGl0Z3JhYWF3emlhZmx2ZW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExOTE5NzksImV4cCI6MjA4Njc2Nzk3OX0.sqcgO8gZZ7UPotWOnlQ8FQWhkxKnx_hsh7pRsCi1s2g';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Senha simples para proteger a tela (Em produção ideal é ter um backend real)
+        function login() {
+            if(document.getElementById('admin-pass').value === 'admin123') {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                renderAdminEbooks();
+            } else {
+                alert('Senha incorreta!');
+            }
+        }
+
+        let currentEbooksList = [];
+        let editingId = null;
+
+        // Logic to save or update E-books
+        document.getElementById('ebook-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const btnSubmit = document.querySelector('button[type="submit"]');
+            btnSubmit.innerText = "Enviando... Aguarde...";
+            btnSubmit.disabled = true;
+
+            try {
+                const fileInput = document.getElementById('ebook-image');
+                const file = fileInput.files[0];
+                let imageUrl = '';
+                
+                // Upload only if file is selected
+                if (file) {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}.${fileExt}`;
+                    
+                    const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                        .from('capas')
+                        .upload(fileName, file);
+                        
+                    if(uploadError) throw uploadError;
+                    
+                    const { data } = supabaseClient.storage.from('capas').getPublicUrl(fileName);
+                    imageUrl = data.publicUrl;
+                } else if (editingId) {
+                    // Mantém a imagem anterior caso não tenha subido uma nova durante edição
+                    const currEbook = currentEbooksList.find(e => e.id === editingId);
+                    if(currEbook) imageUrl = currEbook.image_url;
+                } else {
+                    throw new Error("Por favor, selecione uma imagem para a capa do ebook!");
+                }
+
+                const ebookDataObj = {
+                    title: document.getElementById('ebook-title').value,
+                    price: document.getElementById('ebook-price').value,
+                    image_url: imageUrl,
+                    stripe_link: document.getElementById('ebook-stripe').value,
+                    download_link: "entregue_via_stripe",
+                    description: document.getElementById('ebook-desc').value
+                };
+
+                if (editingId) {
+                    // Modo Edição
+                    const { error: updateError } = await supabaseClient
+                        .from('ebooks')
+                        .update(ebookDataObj)
+                        .eq('id', editingId);
+                    if(updateError) throw updateError;
+                    alert('E-book atualizado com sucesso!');
+                    editingId = null;
+                } else {
+                    // Modo Adicionar
+                    const { error: dbError } = await supabaseClient
+                        .from('ebooks')
+                        .insert([ebookDataObj]);
+                    if(dbError) throw dbError;
+                    alert('E-book salvo com sucesso no Banco de Dados!');
+                }
+
+                document.getElementById('ebook-form').reset();
+                renderAdminEbooks();
+                
+            } catch(error) {
+                console.error(error);
+                alert("Erro ao salvar: " + error.message);
+            } finally {
+                btnSubmit.innerText = "Publicar E-book na Loja";
+                btnSubmit.disabled = false;
+            }
+        });
+
+        async function renderAdminEbooks() {
+            let container = document.getElementById('ebooks-container');
+            container.innerHTML = '<h3 style="margin-bottom: 15px;">Carregando do banco de dados...</h3>';
+            
+            const { data: ebooks, error } = await supabaseClient
+                .from('ebooks')
+                .select('*')
+                .order('created_at', { ascending: false });
+                
+            if(error) {
+                container.innerHTML = `<p style="color:red;">Erro ao buscar: ${error.message}</p>`;
+                return;
+            }
+            
+            if(!ebooks || ebooks.length === 0) {
+                container.innerHTML = '<h3 style="margin-bottom: 15px;">E-books Ativos na Plataforma</h3><p>Nenhum E-book cadastrado ainda.</p>';
+                return;
+            }
+
+            currentEbooksList = ebooks;
+            let html = '<h3 style="margin-bottom: 15px;">E-books Ativos na Plataforma</h3>';
+            ebooks.forEach(eb => {
+                html += `
+                    <div class="ebook-item">
+                        <div style="display:flex; gap:15px; align-items:center;">
+                            <img src="${eb.image_url}" alt="capa" style="width:50px; height:50px; object-fit:cover; border-radius:4px;">
+                            <div>
+                                <strong style="color:var(--gold)">${eb.title}</strong><br>
+                                <small>Preço: R$ ${eb.price}</small>
+                            </div>
+                        </div>
+                        <div class="action-btns">
+                            <button type="button" class="edit-btn" onclick="iniciarEdicao('${eb.id}')">Editar</button>
+                            <button type="button" class="delete-btn" onclick="deleteEbook('${eb.id}')">Remover</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        window.iniciarEdicao = function(id) {
+            const ebook = currentEbooksList.find(e => e.id === id);
+            if(!ebook) return;
+
+            editingId = id;
+            document.getElementById('ebook-title').value = ebook.title;
+            document.getElementById('ebook-price').value = ebook.price;
+            document.getElementById('ebook-stripe').value = ebook.stripe_link;
+            document.getElementById('ebook-desc').value = ebook.description;
+            
+            // Rola a página para o topo suavemente
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            const btnSubmit = document.querySelector('button[type="submit"]');
+            btnSubmit.innerText = "Atualizar E-book";
+        }
+
+        async function deleteEbook(id) {
+            if(confirm('Tem certeza que deseja remover este E-book permanentemente do site?')) {
+                const { error } = await supabaseClient
+                    .from('ebooks')
+                    .delete()
+                    .eq('id', id);
+                    
+                if(error) {
+                    alert("Erro ao excluir: " + error.message);
+                } else {
+                    renderAdminEbooks();
+                }
+            }
+        }
+    </script>
+</body>
+</html>

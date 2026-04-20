@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download Liberado - Não é Só Namoro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: var(--bg-dark);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .success-box {
+            background: var(--bg-card);
+            padding: 4rem;
+            border-radius: 8px;
+            border: 1px solid var(--primary);
+            box-shadow: 0 20px 50px rgba(197, 160, 89, 0.2);
+            max-width: 600px;
+            width: 100%;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(37, 211, 102, 0.1);
+            color: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem auto;
+            font-size: 40px;
+        }
+        .success-box h1 {
+            color: #fff;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+        .success-box p {
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .drive-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2.5rem;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+        
+        #btn-download {
+            display: inline-block;
+            padding: 1.2rem 3rem;
+            background: var(--primary-gradient);
+            color: #000;
+            font-weight: 800;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+            cursor: pointer;
+            border: none;
+            font-size: 1.1rem;
+        }
+        #btn-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(197, 160, 89, 0.3);
+        }
+        .support-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="success-box">
+        <div class="success-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h1>Download <span class="gold-text">Liberado!</span></h1>
+        <p>Seu pagamento foi confirmado com sucesso. O seu e-book já está pronto para ser baixado e acessado no seu dispositivo.</p>
+        
+        <div class="drive-box">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" style="margin-bottom: 1rem;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+            <h3 style="color: #fff; margin-bottom: 1rem;">Seu E-book Exclusivo</h3>
+            <a id="btn-download" href="#" target="_blank">Acessar E-book no Google Drive</a>
+        </div>
+        
+        <a href="index.html" style="color: var(--primary); text-decoration: none; font-weight: 600;">← Voltar para o Início</a>
+        <p class="support-text">Problemas para baixar? Chame o suporte no WhatsApp.</p>
+    </div>
+
+    <script>
+        // Pega o parametro "link" da URL e aplica ao botão!
+        const params = new URLSearchParams(window.location.search);
+        let driveLink = params.get('link');
+        
+        const btn = document.getElementById('btn-download');
+        
+        if(driveLink) {
+            btn.href = driveLink;
+        } else {
+            // Em caso de falta do link, exibe o texto padrão (ou ajusta via painel do Stripe com URL customizada)
+            btn.innerText = "Acesse e baixe aqui o seu E-book.";
+            btn.href = "https://wa.me/5585992872157?text=Oi,%20meu%20pagamento%20foi%20aprovado%20no%20Stripe.%20Pode%20me%20mandar%20o%20link%20do%20E-book?";
+        }
+    </script>
+</body>
+</html>
