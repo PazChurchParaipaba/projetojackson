@@ -106,14 +106,44 @@ document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
 // Stripe SDK não é mais necessário com o método de Payment Link direto
 
 // Checkout Modal Logic
+let currentProduct = {
+    title: 'Curso Não é Só Namoro',
+    price: '97,50',
+    stripeLink: 'https://buy.stripe.com/14A9AUbPY95xcMheaI8g000',
+    type: 'course'
+};
+
 const modal = document.querySelector('#checkout-modal');
 const closeModalBtn = document.querySelector('#close-modal');
 const openModalBtns = document.querySelectorAll('a[href="#pricing"], .btn-primary, .btn-secondary');
 
 const openModal = (e) => {
     const text = e.target.innerText.toLowerCase();
-    if (text.includes('vaga') || text.includes('agora') || text.includes('começar') || text.includes('momento')) {
+    if (text.includes('vaga') || text.includes('agora') || text.includes('começar') || text.includes('momento') || e.target.classList.contains('buy-ebook-btn')) {
         e.preventDefault();
+        
+        // Update product data if it's an ebook
+        if(e.target.hasAttribute('data-ebook')) {
+            const ebookData = JSON.parse(e.target.getAttribute('data-ebook'));
+            currentProduct = {
+                title: ebookData.title,
+                price: ebookData.price,
+                stripeLink: ebookData.stripeLink,
+                type: 'ebook'
+            };
+        } else {
+            // Reset to Course
+            currentProduct = {
+                title: 'Curso Não é Só Namoro',
+                price: '97,50',
+                stripeLink: 'https://buy.stripe.com/14A9AUbPY95xcMheaI8g000',
+                type: 'course'
+            };
+        }
+        
+        // Update PIX Modal Info
+        const pixValueEl = document.querySelector('.pix-value strong');
+        if(pixValueEl) pixValueEl.innerText = `R$ ${currentProduct.price}`;
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
@@ -152,23 +182,77 @@ maskInput('#cpf', masks.cpf);
 maskInput('#phone', masks.phone);
 maskInput('#birth-date', masks.date);
 
+// Payment Method Selection Logic
+document.querySelectorAll('.payment-option').forEach(option => {
+    option.addEventListener('click', () => {
+        // Toggle Active Class
+        document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('active'));
+        option.classList.add('active');
+
+        // Toggle Views
+        const method = option.getAttribute('data-method');
+        const stripeInfo = document.querySelector('#stripe-info');
+        const pixArea = document.querySelector('#pix-area');
+        const submitBtn = document.querySelector('#submit-btn');
+
+        if (method === 'pix') {
+            stripeInfo.classList.add('hidden');
+            pixArea.classList.remove('hidden');
+            submitBtn.innerText = 'ENVIAR COMPROVANTE (WHATSAPP)';
+        } else {
+            stripeInfo.classList.remove('hidden');
+            pixArea.classList.add('hidden');
+            submitBtn.innerText = 'FINALIZAR PEDIDO';
+        }
+    });
+});
+
+// Copy Pix Function (Copies only numbers for bank app compatibility)
+window.copyPix = () => {
+    const pixKeyFormatted = document.querySelector('#pix-key').innerText;
+    const pixKeyRaw = pixKeyFormatted.replace(/\D/g, ''); // Remove ( ) - e espaços
+    
+    navigator.clipboard.writeText(pixKeyRaw).then(() => {
+        const btn = document.querySelector('.copy-pix');
+        const originalText = btn.innerText;
+        btn.innerText = 'COPIADO!';
+        btn.style.background = '#25D366';
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.background = '';
+        }, 2000);
+    });
+};
+
 // Real Checkout Submission
 document.querySelector('#enrollment-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.querySelector('#submit-btn');
+    const name = document.querySelector('#full-name').value;
     const email = document.querySelector('#email').value;
+    const method = document.querySelector('.payment-option.active').getAttribute('data-method');
 
-    btn.innerText = 'REDIRECIONANDO...';
-    btn.disabled = true;
-
-    // Usando Payment Link para garantir 100% de estabilidade e contornar erros de integração
-    const paymentLink = 'https://buy.stripe.com/14A9AUbPY95xcMheaI8g000';
-    
-    // Adiciona o e-mail do cliente ao link para facilitar o preenchimento no checkout do Stripe
-    const finalUrl = `${paymentLink}?prefilled_email=${encodeURIComponent(email)}`;
-    
-    // Redireciona o usuário
-    window.location.href = finalUrl;
+    if (method === 'card') {
+        btn.innerText = 'REDIRECIONANDO...';
+        btn.disabled = true;
+        const paymentLink = currentProduct.stripeLink;
+        const finalUrl = `${paymentLink}?prefilled_email=${encodeURIComponent(email)}`;
+        window.location.href = finalUrl;
+    } else {
+        // Pix Flow (WhatsApp)
+        let productText = currentProduct.type === 'ebook' ? `o E-book ${currentProduct.title}` : `o curso Não é Só Namoro`;
+        const message = `Olá! Acabei de fazer o Pix de R$ ${currentProduct.price} para ${productText}. Segue o comprovante em nome de ${name} (${email}).`;
+        const waNumber = '5585992872157';
+        const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
+        
+        // Open WhatsApp in new tab
+        window.open(waUrl, '_blank');
+        
+        // Redirect to success page after a small delay
+        setTimeout(() => {
+            window.location.href = 'sucesso.html';
+        }, 1000);
+    }
 });
 
 // Carousel Logic
@@ -311,7 +395,58 @@ if (typewriterElement) {
     };
 
     setTimeout(type, 1000);
+
 }
 
+// Supabase Initialization
+const supabaseUrl = 'https://csxitgraaawziaflveol.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzeGl0Z3JhYWF3emlhZmx2ZW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzExOTE5NzksImV4cCI6MjA4Njc2Nzk3OX0.sqcgO8gZZ7UPotWOnlQ8FQWhkxKnx_hsh7pRsCi1s2g';
+const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
+// Render E-books on the Storefront
+document.addEventListener('DOMContentLoaded', async () => {
+    const container = document.getElementById('public-ebooks-container');
+    if(container && supabaseClient) {
+        container.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">Carregando materiais...</p>';
+        
+        try {
+            const { data: ebooks, error } = await supabaseClient
+                .from('ebooks')
+                .select('*')
+                .order('created_at', { ascending: false });
+                
+            if(error || !ebooks || ebooks.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-muted); text-align: center; grid-column: 1/-1;">Nenhum material disponível no momento. Novidades em breve!</p>';
+                return;
+            }
 
+            let html = '';
+            ebooks.forEach(eb => {
+                const ebookDataForModal = {
+                    title: eb.title,
+                    price: eb.price,
+                    stripeLink: eb.stripe_link
+                };
+                html += `
+                    <div class="ebook-card">
+                        <img src="${eb.image_url}" alt="${eb.title}" class="ebook-cover" onerror="this.src='alianca.png'">
+                        <div class="ebook-info">
+                            <h3>${eb.title}</h3>
+                            <p>${eb.description}</p>
+                            <div class="ebook-price">R$ ${eb.price}</div>
+                            <button class="btn-primary buy-ebook-btn" style="width:100%; text-align:center;" data-ebook='${JSON.stringify(ebookDataForModal).replace(/'/g, "&apos;")}'>COMPRAR E-BOOK</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            // Re-attach modal listener for new buttons
+            document.querySelectorAll('.buy-ebook-btn').forEach(btn => {
+                btn.addEventListener('click', openModal);
+            });
+        } catch(e) {
+            container.innerHTML = '<p style="color:red; text-align:center; grid-column: 1/-1;">Erro de conexão ao carregar e-books.</p>';
+        }
+    }
+});
