@@ -890,6 +890,15 @@ h1 {
 @media (max-width: 768px) {
     .final-call-content {
         text-align: left;
+        min-width: 0 !important;
+        width: 100%;
+    }
+    .final-call-image {
+        min-width: 0 !important;
+        width: 100%;
+    }
+    .carousel-container {
+        margin-left: 0 !important;
     }
     .final-call-content p {
         font-size: 1.05rem;
